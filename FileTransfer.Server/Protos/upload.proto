@@ -4,20 +4,16 @@ option csharp_namespace = "gRPCFileTransfer";
 
 package upload;
 
-// The greeting service definition.
 service Uploader {
-  // Sends a greeting
   rpc Upload (FileChunk) returns (Info);
 }
 
-// The request message containing the user's name.
 message Info {
   int32 uploadedChunks = 1;
   int32 totalChunks = 2;
   string uploadedChunksIndexes = 3;
 }
 
-// The response message containing the greetings.
 message FileChunk {
   string fileId = 1;
   string FileName = 2;

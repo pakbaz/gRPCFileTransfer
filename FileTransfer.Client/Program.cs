@@ -24,18 +24,22 @@ namespace FileTransfer.Client
             using var channel = GrpcChannel.ForAddress(backend);
             var client = new Uploader.UploaderClient(channel);
             Console.Write("Enter the File Path to Upload: ");
-            string path = Console.ReadLine(); //e.g. c:\\Users\\sepakbaz\\Downloads\\slack.exe or c:\\Users\\sepakbaz\\Downloads\\vs.exe
+            string path = Console.ReadLine(); 
 
             using FileStream file = File.Open(path, FileMode.Open, FileAccess.Read);
             string fileName = file.Name[(file.Name.LastIndexOf('\\') + 1)..];
 
+
             Chunks = new();
+
+            //To compress file either with GZip or Brotli
+            //GZipStream compressed = new GZipStream(file, CompressionMode.Compress);
             int totalChunks = (int)(file.Length / chunkSize);
             if (file.Length % chunkSize != 0) totalChunks++; //add fraction as another chunk
 
             string guid = Guid.NewGuid().ToString();
 
-            //GZipStream compressed = new GZipStream(file, CompressionMode.Compress);
+
             byte[] buffer;
             
             
@@ -44,7 +48,7 @@ namespace FileTransfer.Client
                 buffer = new byte[chunkSize];
                 file.Read(buffer, 0, chunkSize);
 
-                var c = new FileChunk()
+                Chunks.Add(new FileChunk()
                 {
                     ChunkIndex = i,
                     FileName = fileName,
@@ -52,8 +56,7 @@ namespace FileTransfer.Client
                     FileId = guid,
                     Chunk = Google.Protobuf.ByteString.CopyFrom(buffer),
                     TotalFileSize = file.Length
-                };
-                Chunks.Add(c);
+                });
             }
 
 
