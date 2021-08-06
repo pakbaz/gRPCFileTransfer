@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -39,6 +38,8 @@ namespace gRPCFileTransfer
                             .OrderBy(i => i.ChunkIndex)
                             .Select(i => i.Chunk.ToByteArray())
                             .ToArray());
+
+                    //Here is to Decompress if compressed while transferring
                     //GZipStream decompressed = new GZipStream( new MemoryStream(allBytes), CompressionMode.Decompress);
 
                     locker.AcquireWriterLock(int.MaxValue);
@@ -62,13 +63,15 @@ namespace gRPCFileTransfer
                 UploadedChunks = files[request.FileId].Count,
                 UploadedChunksIndexes = string.Join(',', files[request.FileId].Select(i => i.ChunkIndex.ToString()))
             };
-            //Cleanup once all the pieces are in place
+            //Cleanup once all file is saved
+            //TODO: may double check with any error flag to make sure
             List<FileChunk> tobeRemoved = new();
             if(result.UploadedChunks == result.TotalChunks)
             {
                 files.TryRemove(request.FileId,out tobeRemoved);
             }
-            
+
+            //TODO: make another copy of the tobeRemoved data somewhere before its gone
 
             return Task.FromResult(result);
         }
