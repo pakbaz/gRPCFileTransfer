@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace gRPCFileTransfer
 
             request.Chunk.ToByteArray();
 
-            if (request.TotalChunks == files[request.FileId].Count())
+            if (request.TotalChunks == files[request.FileId].Count)
             {
                 try
                 {
@@ -43,23 +44,37 @@ namespace gRPCFileTransfer
                     locker.AcquireWriterLock(int.MaxValue);
                     File.WriteAllBytes(request.FileName, allBytes);
                 }
+                catch
+                {
+                    //TODO: better error handling, possibly a flag for not to delete dictionary item
+
+                }
                 finally
                 {
                     locker.ReleaseWriterLock();
                 }
             }
 
-
-            return Task.FromResult(new Info
+            //get Info and cleanup
+            Info result = new()
             {
                 TotalChunks = request.TotalChunks,
-                UploadedChunks = files[request.FileId].Count(),
+                UploadedChunks = files[request.FileId].Count,
                 UploadedChunksIndexes = string.Join(',', files[request.FileId].Select(i => i.ChunkIndex.ToString()))
-            });
+            };
+            //Cleanup once all the pieces are in place
+            List<FileChunk> tobeRemoved = new();
+            if(result.UploadedChunks == result.TotalChunks)
+            {
+                files.TryRemove(request.FileId,out tobeRemoved);
+            }
+            
+
+            return Task.FromResult(result);
         }
 
         #region Combine Chunks
-        private byte[] Combine(params byte[][] arrays)
+        private static byte[] Combine(params byte[][] arrays)
         {
             int counter = 0;
             byte[] rv = new byte[arrays.Sum(a => a.Length)];
