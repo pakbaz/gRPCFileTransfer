@@ -59,7 +59,7 @@ namespace FileTransfer.Client
                 });
             }
 
-
+            //Solution 1: Single thread
             Info info = null;
             while (true)
             {
@@ -73,6 +73,21 @@ namespace FileTransfer.Client
                 
             }
 
+            //Solution 2 Task Library
+
+            // var mutex = new SemaphoreSlim(maxConcurrency);
+            // var tasks = Enumerable.Range(0, totalChunks).Select(async index =>
+            // {
+            //     await mutex.WaitAsync();
+            //     try { await client.UploadAsync(Chunks[index]); }
+            //     finally { 
+            //         mutex.Release(); 
+            //         Console.WriteLine($"Uploading Chunks {index}/{totalChunks} ");
+            //         }
+            // });
+            // Task.WhenAll(tasks).Wait();
+
+            //Solution 3 Threadpool Partitioning
             // await Tools.ParallelForEachAsync(Chunks, maxConcurrency, async(c) => 
             //     { 
             //         var info = await client.UploadAsync(c);
@@ -80,9 +95,12 @@ namespace FileTransfer.Client
             //     });
 
 
+            //Todo: do more error handling
+            await Task.Delay(1); //this line can be removed
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
+
 
     }
     
