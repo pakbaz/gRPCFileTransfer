@@ -32,7 +32,7 @@ namespace HelloworldXamarin
     {
         private static List<FileChunk> Chunks { get; set; }
 
-        const string backend = "https://localhost:5001";
+        const string backend = "10.0.2.2:5000";
         const int chunkSize = 1024 * 1024;
         const int maxConcurrency = 2;
 
@@ -47,8 +47,8 @@ namespace HelloworldXamarin
             //using var channel = GrpcChannel.ForAddress(backend);
             Channel channel = new Channel(backend, ChannelCredentials.Insecure);
             var client = new Uploader.UploaderClient(channel);
-            Console.Write("Enter the File Path to Upload: ");
-            string path = Console.ReadLine();
+            //Console.Write("Enter the File Path to Upload: ");
+            //string path = Console.ReadLine();
 
             //FileStream file = File.Open(path, FileMode.Open, FileAccess.Read);
             //string fileName = file.Name.Substring(file.Name.LastIndexOf('\\'));
